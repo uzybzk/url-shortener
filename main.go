@@ -9,13 +9,7 @@ import (
     "time"
 )
 
-type URLMap struct {
-    urls map[string]string
-}
-
-var urlMap = &URLMap{
-    urls: make(map[string]string),
-}
+var storage = NewStorage()
 
 func main() {
     rand.Seed(time.Now().UnixNano())
@@ -74,7 +68,7 @@ func shortenHandler(w http.ResponseWriter, r *http.Request) {
     }
     
     shortCode := generateShortCode()
-    urlMap.urls[shortCode] = longURL
+    storage.Set(shortCode, longURL)
     
     shortURL := fmt.Sprintf("http://localhost:8080/r/%s", shortCode)
     
@@ -98,7 +92,7 @@ func shortenHandler(w http.ResponseWriter, r *http.Request) {
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
     shortCode := r.URL.Path[len("/r/"):]
     
-    longURL, exists := urlMap.urls[shortCode]
+    longURL, exists := storage.Get(shortCode)
     if !exists {
         http.NotFound(w, r)
         return
